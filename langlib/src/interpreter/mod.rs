@@ -11,7 +11,6 @@ use std::{
 
 use crate::{
     expr::{BinExpr, Expr},
-    func::Func,
     lexer::{err::LexerError, Lexer},
     parser::{err::ParserError, Parser},
     stmt::Stmt,
@@ -62,7 +61,11 @@ impl Interpreter {
     pub fn execute_stmt(&mut self, stmt: &Stmt) -> Result<(), Err> {
         match stmt {
             Stmt::Declaration(declaration) => {
-                let expr = self.visit_expr(&declaration.val)?;
+                let mut expr = self.visit_expr(&declaration.val)?;
+
+                if let Expr::Func(func) = &mut expr {
+                    func.set_closure(self.env.clone().into_inner());
+                }
 
                 self.env
                     .borrow_mut()
@@ -176,7 +179,7 @@ impl Interpreter {
             Expr::Funcall(callee, args) => {
                 let func = self.visit_expr(callee)?;
 
-                let mut func = match func {
+                let func = match func {
                     Expr::Func(func) => func,
                     _ => {
                         return Err(Err::RuntimeErr(RuntimeErr::UnexpectedType(
@@ -197,7 +200,6 @@ impl Interpreter {
                     )));
                 }
 
-                func.set_closure(self.env.clone().into_inner());
                 func.exec(self, args)
             }
 

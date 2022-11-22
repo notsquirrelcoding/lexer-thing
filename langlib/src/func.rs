@@ -28,7 +28,13 @@ impl Func {
         interpreter: &mut Interpreter,
         args: Vec<Expr>,
     ) -> Result<Expr, interpreter::Err> {
+
+
+
         let prev = self.closure;
+
+        println!("CURRENT CKOUSRE {:?}", prev);
+
 
         let mut new_env = Env::default();
         new_env.set_parent(prev);
